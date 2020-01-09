@@ -41,6 +41,7 @@ import com.android.systemui.plugins.DarkIconDispatcher;
 import com.android.systemui.plugins.PluginManager;
 import com.android.systemui.plugins.VolumeDialogController;
 import com.android.systemui.plugins.statusbar.StatusBarStateController;
+import com.android.systemui.rotation.RotationPolicyWrapper;
 import com.android.systemui.settings.UserTracker;
 import com.android.systemui.shared.plugins.PackageConfig;
 import com.android.systemui.statusbar.CommandQueue;
@@ -141,6 +142,7 @@ public class Dependency {
     @Inject @Named(TIME_TICK_HANDLER_NAME) Lazy<Handler> mTimeTickHandler;
     @Inject Lazy<SysUiState> mSysUiStateFlagsContainer;
     @Inject Lazy<CommandQueue> mCommandQueue;
+    @Inject Lazy<RotationPolicyWrapper> mRotationPolicyWrapper;
     @Inject Lazy<UiEventLogger> mUiEventLogger;
     @Inject Lazy<FeatureFlags> mFeatureFlagsLazy;
     @Inject Lazy<NotificationSectionsManager> mNotificationSectionsManagerLazy;
@@ -188,6 +190,7 @@ public class Dependency {
         mProviders.put(NotificationMediaManager.class, mNotificationMediaManager::get);
         mProviders.put(SysUiState.class, mSysUiStateFlagsContainer::get);
         mProviders.put(CommandQueue.class, mCommandQueue::get);
+        mProviders.put(RotationPolicyWrapper.class, mRotationPolicyWrapper::get);
         mProviders.put(UiEventLogger.class, mUiEventLogger::get);
         mProviders.put(FeatureFlags.class, mFeatureFlagsLazy::get);
         mProviders.put(NotificationSectionsManager.class, mNotificationSectionsManagerLazy::get);
