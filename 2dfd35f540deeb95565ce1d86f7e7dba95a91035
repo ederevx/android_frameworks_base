@@ -1,0 +1,39 @@
+# frameworks/base hwnav-runtime-toggle-23.2 — branch note (20261004)
+
+Series (oldest first), rebased mechanically onto today's upstream lineage-23.2 tip
+1c45e31a86be95f51a94ffd1a5014c3fb2019112 (2026-09-21):
+
+  df0621fa3e6b  fw/b: Add support for runtime toggle of navbar        (469361, b533d94244b1)
+  547882ad063c  Allow screen unpinning on devices without navbar      (469362, 7f51f41433b7)
+  97d35e40bb72  SystemUI: add FloatingRotationButton for hw-key devices (469363, 6703f922c4ed)
+  4f222bad2d06  SystemUI: Fix hw-key FloatingRotationButton build on 23.2 (0960c20912e9)
+  4a9adb8086bc  SystemUI: Restore runtime navbar toggle on Android 16 (d3c541f4988b)
+  784a426c031b  fw/b: Force the navbar in Shell when the Lineage toggle is on (da0a34e8598a)
+  0485ca8c3df6  PhoneWindowManager: Follow the Lineage navbar toggle for hardware keys (8fc7ba0eee1a)
+  5e7454750e84  fixup! fw/b: Add support for runtime toggle of navbar
+
+All seven are carried DELIBERATELY as a bundled restore per owner direction. None is accidental.
+
+Why each matters:
+- 469361 alone provides the FORCE_SHOW_NAVBAR value but is insufficient on its own.
+- The SystemUI half (d3c541f4988b) is what makes the toggle live: it bypasses the
+  NavigationBarControllerImpl cache for the default display, invalidates mHasNavBarOrTaskbar on
+  the setting change, explicitly creates/removes the bar, and is driven by a ContentObserver on
+  the FORCE_SHOW_NAVBAR URI. Without it the setting flips WMS while SystemUI keeps the cached
+  answer, which is GitLab #9914 (keys off, no bar).
+- Shell (da0a34e8598a) keeps Shell-side insets/DisplayLayout.hasNavigationBar consistent.
+- PWM (8fc7ba0eee1a) keeps capacitive-key state and FEATURE_KEY_DISABLE consistent with the bar.
+- 469362/469363 are separable features (screen unpinning without navbar; hw-key FloatingRotationButton)
+  carried deliberately in the bundle.
+
+History correction (do not repeat the "AOSP 16 caching broke it" story): the SystemUI/Shell half
+existed through lineage-22.1 and was dropped by the 22.2 reduction (Gerrit 422118, merged
+2025-03-28), leaving the two-file form. The NavigationBarControllerImpl cache predates that
+reduction (present since 21.0). So the two-file form is insufficient on any 22.2/23.1/23.2 build;
+the 23.1 implication is inference from the code shape, not a tested fact. What differs on 23.2 is
+the plumbing: mHasNavBar -> mHasNavBarOrTaskbar, private shouldCreateNavBarAndTaskBar(int) ->
+interface canCreateNavBarOrTaskBar(int), and the flag-gated add-decorations refill now queries WMS
+instead of a hard-coded put(displayId, true).
+
+Fixup (5e7454750e84): SettingsObserver is created only for the main display while release() runs
+for every DisplayPolicy; unregister it alongside the existing observers, guarded by a null check.
