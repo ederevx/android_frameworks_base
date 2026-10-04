@@ -455,6 +455,10 @@ public class DisplayPolicy {
         public void onChange(boolean selfChange) {
             updateSettings();
         }
+
+        public void unregister() {
+            mContext.getContentResolver().unregisterContentObserver(this);
+        }
     }
 
     DisplayPolicy(WindowManagerService service, DisplayContent displayContent) {
@@ -3312,6 +3316,7 @@ public class DisplayPolicy {
         mDisplayContent.mTransitionController.unregisterLegacyListener(mAppTransitionListener);
         mHandler.post(mGestureNavigationSettingsObserver::unregister);
         mHandler.post(mForceShowNavBarSettingsObserver::unregister);
+        mHandler.post(mSettingsObserver::unregister);
         if (mService.mPointerLocationEnabled) {
             setPointerLocationEnabled(false);
         }
